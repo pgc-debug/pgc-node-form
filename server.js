@@ -25,11 +25,11 @@ app.use(express.static(__dirname));
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "secret123";
 
-// Helper Functions (Error Proof)
+// Helper Functions
 const readDataFromFile = () => {
     try {
         if (!fs.existsSync(DATA_FILE)) {
-            fs.writeFileSync(DATA_FILE, '[]', 'utf-8'); // File nahi hai to bana do
+            fs.writeFileSync(DATA_FILE, '[]', 'utf-8');
             return [];
         }
         const fileData = fs.readFileSync(DATA_FILE, 'utf-8');
@@ -52,10 +52,33 @@ const isAuthenticated = (req, res, next) => {
     res.redirect('/login');
 };
 
-// Routes
+// ==========================================
+// 📄 NEW SERVE PAGES SECTION (MULTI-PAGE)
+// ==========================================
+
+// 1. Serve Home Page
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'home.html'));
+});
+
+// 2. Serve About Page
+app.get('/about', (req, res) => {
+    res.sendFile(path.join(__dirname, 'about.html'));
+});
+
+// 3. Serve Contact Form Page
+app.get('/contact', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+// 4. Serve Admin Dashboard (Protected)
+app.get('/admin', isAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// ==========================================
+// 🔐 AUTHENTICATION ROUTES
+// ==========================================
 
 app.get('/login', (req, res) => {
     res.send(`
@@ -96,9 +119,9 @@ app.get('/logout', (req, res) => {
     res.redirect('/login');
 });
 
-app.get('/admin', isAuthenticated, (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
+// ==========================================
+// ⚙️ API ROUTES (DATA OPERATIONS)
+// ==========================================
 
 app.get('/api/submissions', isAuthenticated, (req, res) => {
     const submissions = readDataFromFile();
@@ -106,12 +129,12 @@ app.get('/api/submissions', isAuthenticated, (req, res) => {
 });
 
 app.post('/api/submit', (req, res) => {
-    const { name, email, message } = req.body;
-    if (name && email && message) {
+    const { name, email, phone, city, gender, message } = req.body;
+    if (name && email && phone && city && gender && message) {
         const submissions = readDataFromFile();
         const newData = {
             id: submissions.length + 1,
-            name, email, message,
+            name, email, phone, city, gender, message,
             date: new Date().toLocaleString()
         };
         submissions.push(newData);
