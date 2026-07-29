@@ -1,20 +1,16 @@
 {
-  "name": "form",
+  "name": "my-node-form",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
-    
     "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "express-session": "^1.19.0",
-    "mongoose": "^9.8.1"
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
   }
 }
