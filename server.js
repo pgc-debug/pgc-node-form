@@ -135,6 +135,8 @@ app.delete('/api/submissions/:id', isAuthenticated, (req, res) => {
     }
 });
 
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-    console.log(`✅ Secure Server running on http://localhost:${const PORT = process.env.PORT || 3000;}`);
+    console.log(`✅ Secure Server running on port ${PORT}`);
 });
