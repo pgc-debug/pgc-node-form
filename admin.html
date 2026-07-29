@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Backend Data</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Delete button ke liye thodi si CSS */
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+        }
+        .delete-btn:hover { background-color: #bd2130; }
+        .logout-btn {
+            background-color: #6c757d;
+            float: left;
+            width: auto;
+            margin-bottom: 10px;
+        }
+        .logout-btn:hover { background-color: #5a6268; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card backend-card">
+            <h2>Backend Data View (Admin Panel)</h2>
+            <a href="/logout"><button class="logout-btn">🚪 Logout</button></a>
+            <button id="refreshBtn">🔄 Refresh Data</button>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Message</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable">
+                        <!-- Data dynamic aayega -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dataTable = document.getElementById('dataTable');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // Function: Data fetch aur display karne ke liye
+        async function loadBackendData() {
+            try {
+                const response = await fetch('/api/submissions');
+                if (response.status === 401 || response.redirected) {
+                    window.location.href = '/login';
+                    return;
+                }
+                const data = await response.json();
+                dataTable.innerHTML = ''; 
+                
+                if(data.length === 0) {
+                    dataTable.innerHTML = `<tr><td colspan="6" style="text-align:center;">No data found in backend yet.</td></tr>`;
+                    return;
+                }
+
+                data.forEach(item => {
+                    dataTable.innerHTML += `<tr>
+                        <td>${item.id}</td>
+                        <td>${item.name}</td>
+                        <td>${item.email}</td>
+                        <td>${item.message}</td>
+                        <td>${item.date}</td>
+                        <td>
+                            <button class="delete-btn" onclick="deleteItem(${item.id})">❌ Delete</button>
+                        </td>
+                    </tr>`;
+                });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // Function: Data delete karne ke liye
+        async function deleteItem(id) {
+            if (confirm("Are you sure you want to delete this record?")) {
+                try {
+                    const response = await fetch(`/api/submissions/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert("Data deleted!");
+                        loadBackendData(); // Table refresh karein
+                    } else {
+                        alert("Failed to delete data!");
+                    }
+                } catch (error) {
+                    console.error("Error deleting data:", error);
+                }
+            }
+        }
+
+        refreshBtn.addEventListener('click', loadBackendData);
+        window.onload = loadBackendData;
+    </script>
+</body>
+</html>
