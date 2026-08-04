@@ -86,7 +86,7 @@ app.get('/login', (req, res) => {
         <html>
         <head>
             <title>Admin Login</title>
-            <link rel="stylesheet" href="style.css">
+            <link rel="stylesheet" href="fstyle.css">
         </head>
         <body>
             <div class="container">
