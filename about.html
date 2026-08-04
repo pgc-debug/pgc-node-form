@@ -1,24 +1,595 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us</title>
-    <link rel="stylesheet" href="fstyle.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAM // Live Monitor</title>
+<style>
+  :root {
+    --bg: #0e1418;
+    --panel: #141b20;
+    --panel-raised: #19222899;
+    --line: #263139;
+    --amber: #ffb020;
+    --amber-dim: #8a5f16;
+    --teal: #4fd1c5;
+    --text: #dbe4e8;
+    --text-dim: #6b7b83;
+    --danger: #ff4d4d;
+    --mono: 'IBM Plex Mono', 'Courier New', monospace;
+    --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, #1a2329 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, #141d22 0%, transparent 50%);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    padding: 28px 20px 60px;
+  }
+
+  @font-face {
+    font-family: 'IBM Plex Mono';
+    src: local('IBM Plex Mono');
+  }
+
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-size: 34px;
+    margin: 0;
+    color: var(--text);
+  }
+  header h1 span { color: var(--amber); }
+
+  .status-line {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-dim);
+    display: inline-block;
+  }
+  .dot.live { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  .monitor {
+    position: relative;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    border: 1px solid var(--line);
+    box-shadow: 0 0 0 1px #000, 0 20px 50px -20px #000a;
+  }
+
+  video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    background: #05080a;
+    filter: saturate(1.05) contrast(1.02);
+  }
+
+  .placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px;
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+  .placeholder svg { opacity: 0.35; }
+
+  /* scanline + vignette overlay, signature element */
+  .crt-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.025) 0px,
+      rgba(255,255,255,0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: overlay;
+  }
+  .vignette {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 90px 20px rgba(0,0,0,0.55);
+  }
+
+  .corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--amber-dim);
+    opacity: 0.85;
+  }
+  .corner.tl { top: 10px; left: 10px; border-top: 2px solid; border-left: 2px solid; }
+  .corner.tr { top: 10px; right: 10px; border-top: 2px solid; border-right: 2px solid; }
+  .corner.bl { bottom: 10px; left: 10px; border-bottom: 2px solid; border-left: 2px solid; }
+  .corner.br { bottom: 10px; right: 10px; border-bottom: 2px solid; border-right: 2px solid; }
+
+  .hud-top, .hud-bottom {
+    position: absolute; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    padding: 12px 16px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--amber);
+    text-shadow: 0 0 6px rgba(255,176,32,0.4);
+    pointer-events: none;
+  }
+  .hud-top { top: 0; }
+  .hud-bottom { bottom: 0; color: var(--teal); text-shadow: 0 0 6px rgba(79,209,197,0.35); }
+
+  .rec-flag {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--danger);
+    text-shadow: 0 0 6px rgba(255,77,77,0.5);
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .rec-flag.on { opacity: 1; }
+  .rec-flag .dot { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: pulse 1s infinite; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    margin-top: 18px;
+    padding: 18px;
+  }
+
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  select {
+    background: var(--panel-raised);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    min-width: 160px;
+  }
+  select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  .spacer { flex: 1; }
+
+  button {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 16px;
+    border-radius: 3px;
+    border: 1px solid var(--line);
+    background: var(--panel-raised);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  button:hover:not(:disabled) { border-color: var(--amber-dim); color: var(--amber); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  button.primary {
+    background: var(--amber);
+    color: #1a1204;
+    border-color: var(--amber);
+    font-weight: 600;
+  }
+  button.primary:hover:not(:disabled) { background: #ffc352; color: #1a1204; }
+
+  button.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+  button.danger:hover:not(:disabled) { background: rgba(255,77,77,0.1); }
+
+  .divider { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }
+
+  .strip-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 22px 0 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .strip::-webkit-scrollbar { height: 6px; }
+  .strip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  .capture {
+    position: relative;
+    flex: 0 0 auto;
+    width: 140px;
+    aspect-ratio: 16/9;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: #000;
+  }
+  .capture img, .capture video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .capture .cap-label {
+    position: absolute; bottom: 4px; left: 6px;
+    font-size: 9px; color: var(--amber);
+    background: rgba(0,0,0,0.5); padding: 1px 4px; border-radius: 2px;
+  }
+  .capture a.dl {
+    position: absolute; top: 4px; right: 4px;
+    font-size: 9px; color: var(--text);
+    background: rgba(0,0,0,0.55);
+    padding: 2px 5px; border-radius: 2px;
+    text-decoration: none;
+  }
+  .capture a.dl:hover { color: var(--teal); }
+
+  .empty-strip {
+    font-size: 11px; color: var(--text-dim); font-style: italic;
+    padding: 14px 0;
+  }
+
+  .error-msg {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(255,77,77,0.08);
+    border: 1px solid rgba(255,77,77,0.3);
+    color: #ff8a8a;
+    font-size: 12px;
+    border-radius: 3px;
+    display: none;
+    line-height: 1.5;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 11px;
+    margin-top: 30px;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 560px) {
+    header h1 { font-size: 26px; }
+    select { min-width: 130px; }
+  }
+</style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <div class="navbar">
-        <a href="/">Home</a>
-        <a href="/about" class="active">About</a>
-        <a href="/contact">Contact Form</a>
-    </div>
+<div class="wrap">
 
-    <div class="container">
-        <div class="card" style="max-width: 600px;">
-            <h2>About Us 📖</h2>
-            <p>Hum ne yeh project HTML, CSS, JavaScript, aur Node.js Express ka istemal karte hue banaya hai.</p>
-        </div>
+  <header>
+    <h1>CAM<span>//</span>MONITOR</h1>
+    <div class="status-line"><span class="dot" id="statusDot"></span><span id="statusText">standby</span></div>
+  </header>
+
+  <div class="monitor" id="monitor">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="placeholder" id="placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M23 7l-7 5 7 5V7z"></path>
+        <rect x="1" y="5" width="15" height="14" rx="2"></rect>
+      </svg>
+      <div>NO SIGNAL — press START to connect a camera</div>
     </div>
+    <div class="crt-overlay"></div>
+    <div class="vignette"></div>
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <div class="hud-top">
+      <span id="resLabel">— × —</span>
+      <span class="rec-flag" id="recFlag"><span class="dot"></span>REC <span id="recTime">00:00</span></span>
+    </div>
+    <div class="hud-bottom">
+      <span id="camLabel">no device</span>
+      <span id="clock">--:--:--</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="controls-row">
+      <div class="field">
+        <label for="deviceSelect">Device</label>
+        <select id="deviceSelect" disabled><option>connect to list devices</option></select>
+      </div>
+      <div class="field">
+        <label for="resSelect">Resolution</label>
+        <select id="resSelect">
+          <option value="640x480">640 × 480</option>
+          <option value="1280x720" selected>1280 × 720</option>
+          <option value="1920x1080">1920 × 1080</option>
+        </select>
+      </div>
+      <div class="spacer"></div>
+      <button class="primary" id="startBtn">Start</button>
+      <button id="stopBtn" disabled>Stop</button>
+      <div class="divider"></div>
+      <button id="snapBtn" disabled>Snapshot</button>
+      <button id="recBtn" disabled>Record</button>
+      <button class="danger" id="stopRecBtn" style="display:none;">Stop Rec</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+
+  <div class="strip-label">
+    <span>Captures</span>
+    <button id="clearBtn" style="padding:5px 10px;font-size:10px;">Clear</button>
+  </div>
+  <div class="strip" id="strip">
+    <div class="empty-strip">Snapshots and recordings will appear here.</div>
+  </div>
+
+  <footer>Runs entirely in your browser. Nothing is uploaded anywhere.</footer>
+</div>
+
+<script>
+  const video = document.getElementById('video');
+  const placeholder = document.getElementById('placeholder');
+  const monitor = document.getElementById('monitor');
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const deviceSelect = document.getElementById('deviceSelect');
+  const resSelect = document.getElementById('resSelect');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const snapBtn = document.getElementById('snapBtn');
+  const recBtn = document.getElementById('recBtn');
+  const stopRecBtn = document.getElementById('stopRecBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const strip = document.getElementById('strip');
+  const errorMsg = document.getElementById('errorMsg');
+  const resLabel = document.getElementById('resLabel');
+  const camLabel = document.getElementById('camLabel');
+  const clockEl = document.getElementById('clock');
+  const recFlag = document.getElementById('recFlag');
+  const recTime = document.getElementById('recTime');
+
+  let stream = null;
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recSeconds = 0;
+  let recInterval = null;
+  let captureCount = 0;
+
+  function tickClock() {
+    clockEl.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.style.display = 'block';
+  }
+  function clearError() {
+    errorMsg.style.display = 'none';
+    errorMsg.textContent = '';
+  }
+
+  function setLive(isLive) {
+    statusDot.classList.toggle('live', isLive);
+    statusText.textContent = isLive ? 'live' : 'standby';
+    placeholder.style.display = isLive ? 'none' : 'flex';
+    stopBtn.disabled = !isLive;
+    snapBtn.disabled = !isLive;
+    recBtn.disabled = !isLive;
+    startBtn.disabled = isLive;
+  }
+
+  async function listDevices() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cams = devices.filter(d => d.kind === 'videoinput');
+      deviceSelect.innerHTML = '';
+      cams.forEach((d, i) => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        opt.textContent = d.label || `Camera ${i + 1}`;
+        deviceSelect.appendChild(opt);
+      });
+      deviceSelect.disabled = cams.length === 0;
+    } catch (e) {
+      // enumeration can fail silently before permission; not fatal
+    }
+  }
+
+  async function startCamera() {
+    clearError();
+    const [w, h] = resSelect.value.split('x').map(Number);
+    const constraints = {
+      video: {
+        width: { ideal: w },
+        height: { ideal: h },
+        deviceId: deviceSelect.value ? { exact: deviceSelect.value } : undefined
+      },
+      audio: false
+    };
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      await listDevices();
+      const track = stream.getVideoTracks()[0];
+      const settings = track.getSettings();
+      resLabel.textContent = `${settings.width || w} × ${settings.height || h}`;
+      camLabel.textContent = track.label || 'camera';
+      setLive(true);
+    } catch (e) {
+      if (e.name === 'NotAllowedError') {
+        showError('Camera access was denied. Allow camera permission in your browser to continue.');
+      } else if (e.name === 'NotFoundError') {
+        showError('No camera device was found.');
+      } else {
+        showError('Could not start camera: ' + e.message);
+      }
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+    setLive(false);
+    resLabel.textContent = '— × —';
+    camLabel.textContent = 'no device';
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') stopRecording();
+  }
+
+  function addCaptureCard(url, isVideo, label) {
+    const empty = strip.querySelector('.empty-strip');
+    if (empty) empty.remove();
+    captureCount++;
+    const card = document.createElement('div');
+    card.className = 'capture';
+    const media = document.createElement(isVideo ? 'video' : 'img');
+    media.src = url;
+    if (isVideo) { media.controls = true; media.muted = true; }
+    card.appendChild(media);
+    const tag = document.createElement('div');
+    tag.className = 'cap-label';
+    tag.textContent = label;
+    card.appendChild(tag);
+    const dl = document.createElement('a');
+    dl.className = 'dl';
+    dl.href = url;
+    dl.download = (isVideo ? 'recording-' : 'snapshot-') + captureCount + (isVideo ? '.webm' : '.png');
+    dl.textContent = '↓';
+    card.appendChild(dl);
+    strip.prepend(card);
+  }
+
+  function takeSnapshot() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      addCaptureCard(url, false, new Date().toLocaleTimeString('en-GB', { hour12: false }));
+    }, 'image/png');
+  }
+
+  function startRecording() {
+    if (!stream) return;
+    recordedChunks = [];
+    let options = { mimeType: 'video/webm;codecs=vp9' };
+    try {
+      mediaRecorder = new MediaRecorder(stream, options);
+    } catch (e) {
+      mediaRecorder = new MediaRecorder(stream);
+    }
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      addCaptureCard(url, true, formatTime(recSeconds));
+    };
+    mediaRecorder.start();
+    recSeconds = 0;
+    recTime.textContent = '00:00';
+    recFlag.classList.add('on');
+    recInterval = setInterval(() => {
+      recSeconds++;
+      recTime.textContent = formatTime(recSeconds);
+    }, 1000);
+    recBtn.style.display = 'none';
+    stopRecBtn.style.display = 'inline-block';
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    clearInterval(recInterval);
+    recFlag.classList.remove('on');
+    recBtn.style.display = 'inline-block';
+    stopRecBtn.style.display = 'none';
+  }
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  startBtn.addEventListener('click', startCamera);
+  stopBtn.addEventListener('click', stopCamera);
+  snapBtn.addEventListener('click', takeSnapshot);
+  recBtn.addEventListener('click', startRecording);
+  stopRecBtn.addEventListener('click', stopRecording);
+  clearBtn.addEventListener('click', () => {
+    strip.innerHTML = '<div class="empty-strip">Snapshots and recordings will appear here.</div>';
+  });
+  resSelect.addEventListener('change', () => { if (stream) { stopCamera(); startCamera(); } });
+  deviceSelect.addEventListener('change', () => { if (stream) { stopCamera(); startCamera(); } });
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showError('This browser does not support camera access (getUserMedia unavailable).');
+    startBtn.disabled = true;
+  }
+
+  listDevices();
+</script>
 </body>
 </html>
