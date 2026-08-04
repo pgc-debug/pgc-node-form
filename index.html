@@ -3,23 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Submission Form</title>
+    <title>Contact Us - My Form</title>
     <link rel="stylesheet" href="fstyle.css">
 </head>
 <body>
-    <!-- Yeh code index.html mein <body> ke foran baad daalna hai -->
-<div class="navbar">
-    <a href="/">Home</a>
-    <a href="/about">About</a>
-    <a href="/contact" class="active">Contact Form</a>
-</div>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/contact" class="active">Contact Form</a>
+    </div>
 
     <div class="container">
         <div class="card">
-            <h2>Send Message</h2>
+            <h2>User Submission Form</h2>
             <form id="userForm">
                 <input type="text" id="name" placeholder="Enter Name" required>
                 <input type="email" id="email" placeholder="Enter Email" required>
+                
+                <input type="tel" id="phone" placeholder="Enter Phone Number" required>
+                <input type="text" id="city" placeholder="Enter City" required>
+                
+                <select id="gender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+
                 <textarea id="message" placeholder="Enter Message" rows="4" required></textarea>
                 <button type="submit">Submit Data</button>
             </form>
@@ -36,11 +48,15 @@
             const formData = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                city: document.getElementById('city').value,
+                gender: document.getElementById('gender').value,
                 message: document.getElementById('message').value
             };
 
             try {
-                const response = await fetch('/api/submit', {
+                // Kuch servers par full URL dena behtar hota hai
+                const response = await fetch(`${window.location.origin}/api/submit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -50,6 +66,8 @@
                 if(result.success) {
                     document.getElementById('formStatus').innerText = "✅ Data sent successfully!";
                     userForm.reset();
+                } else {
+                    document.getElementById('formStatus').innerText = "❌ Form error: " + result.message;
                 }
             } catch (error) {
                 document.getElementById('formStatus').innerText = "❌ Connection failed!";
