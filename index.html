@@ -10,10 +10,10 @@
 
     <header>
         <a href="#" class="logo">📸 PixelResizer</a>
-        <div style="color: var(--text-muted); font-size: 14px;">⚡ No App Required - 100% Free</div>
+        <div style="color: var(--text-muted); font-size: 14px;">⚡ 100% Free - Fast KB Resizer</div>
     </header>
 
-    <!-- Top Leaderboard Ad -->
+    <!-- Top Leaderboard Ad Slot -->
     <div class="ad-banner-top">
         <div class="ad-placeholder" style="height: 90px; width: 100%;">
             [💰 PLACE TOP BANNER AD CODE HERE - 728x90]
@@ -25,14 +25,13 @@
             <h2>Ultimate Image Workspace</h2>
             <p style="color: var(--text-muted); margin-bottom: 25px;">Resize, compress, or convert your images instantly without losing original quality.</p>
             
-            <!-- Tool Selector Tabs (Ab 3 options hain) -->
+            <!-- Dynamic Tool Selector Tabs -->
             <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
                 <button id="tabResize" class="tab-btn active-tab">Dimensions (px)</button>
-                <button id="tabCompress" class="tab-btn">Optimize Size</button>
                 <button id="tabTargetKB" class="tab-btn">Resize to KB (e.g. 20KB)</button>
             </div>
 
-            <!-- Upload Area -->
+            <!-- Drag & Drop Upload Zone -->
             <div class="drop-zone" id="dropZone">
                 <p id="fileInfo" style="font-weight: 600; margin: 0;">📁 Drag & Drop Image or Click to Browse</p>
                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
@@ -41,7 +40,7 @@
             <!-- Dynamic Settings Section -->
             <div id="toolSettings" style="display: none; margin-top: 25px;">
                 
-                <!-- 1. Resize Section (Dimensions) -->
+                <!-- 1. Dimension Resizing Section -->
                 <div id="resizeSection">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div>
@@ -56,10 +55,10 @@
 
                     <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" id="maintainAspectRatio" checked style="width: auto; margin: 0; cursor: pointer;">
-                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio</label>
+                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio (Lock Dimensions)</label>
                     </div>
                     
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Format Extension:</label>
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Target Format Extension:</label>
                     <select id="targetFormat" style="margin-top: 0; margin-bottom:15px;">
                         <option value="image/jpeg">JPG / JPEG</option>
                         <option value="image/png">PNG</option>
@@ -67,18 +66,17 @@
                     </select>
                 </div>
 
-                <!-- 2. Compression Section -->
-                <div id="compressSection" style="display: none;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Compression Quality (10% - 100%):</label>
-                    <input type="range" id="compressQuality" min="0.1" max="1.0" step="0.1" value="0.7" style="width: 100%; margin-bottom:15px;">
-                    <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Lower value means smaller file size but lower quality.</p>
-                </div>
-
-                <!-- 3. NEW: Target KB Section -->
+                <!-- 2. Target KB Section (Option Box) -->
                 <div id="targetKBSection" style="display: none;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Target File Size (KB):</label>
-                    <input type="number" id="targetKBValue" value="20" min="5" max="5000" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid var(--border); border-radius:6px; box-sizing: border-box;">
-                    <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.4;">Website will automatically adjust quality to compress image under your specified KB size.</p>
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Desired File Size (KB):</label>
+                    <select id="targetKBValue" style="margin-top: 0; margin-bottom:15px;">
+                        <option value="20">Under 20 KB (Passport Size/Signatures)</option>
+                        <option value="50">Under 50 KB (Govt Job Forms)</option>
+                        <option value="100">Under 100 KB (Admission Portals)</option>
+                        <option value="200">Under 200 KB (Standard Documents)</option>
+                        <option value="500">Under 500 KB (High Quality Optimization)</option>
+                    </select>
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.4;">The script will automatically perform multi-pass rendering cycles to shrink your file precisely within your chosen limit.</p>
                 </div>
 
                 <button id="processBtn" style="background-color: #4f46e5; margin-top: 15px;">✨ Process & Download</button>
@@ -104,14 +102,12 @@
         const toolSettings = document.getElementById('toolSettings');
         const processBtn = document.getElementById('processBtn');
         
-        // Tabs
+        // Tabs Elements
         const tabResize = document.getElementById('tabResize');
-        const tabCompress = document.getElementById('tabCompress');
         const tabTargetKB = document.getElementById('tabTargetKB');
         
-        // Sections
+        // Sections Elements
         const resizeSection = document.getElementById('resizeSection');
-        const compressSection = document.getElementById('compressSection');
         const targetKBSection = document.getElementById('targetKBSection');
 
         const targetWidthInput = document.getElementById('targetWidth');
@@ -122,34 +118,28 @@
         let selectedFile = null;
         let activeMode = 'resize'; 
         let originalAspectRatio = 1;
-        let originalImg = null;
+        let imageSrcData = null;
 
-        // Tabs Toggle Logic
+        // Clean Tab Switching UI Logic
         tabResize.addEventListener('click', () => {
             activeMode = 'resize';
-            setTabActive(tabResize, [resizeSection]);
-        });
-
-        tabCompress.addEventListener('click', () => {
-            activeMode = 'compress';
-            setTabActive(tabCompress, [compressSection]);
+            tabResize.classList.add('active-tab');
+            tabTargetKB.classList.remove('active-tab');
+            resizeSection.style.display = 'block';
+            targetKBSection.style.display = 'none';
         });
 
         tabTargetKB.addEventListener('click', () => {
             activeMode = 'targetkb';
-            setTabActive(tabTargetKB, [targetKBSection]);
+            tabTargetKB.classList.add('active-tab');
+            tabResize.classList.remove('active-tab');
+            targetKBSection.style.display = 'block';
+            resizeSection.style.display = 'none';
         });
 
-        function setTabActive(activeTab, activeSections) {
-            [tabResize, tabCompress, tabTargetKB].forEach(tab => tab.classList.remove('active-tab'));
-            [resizeSection, compressSection, targetKBSection].forEach(sec => sec.style.display = 'none');
-            
-            activeTab.classList.add('active-tab');
-            activeSections.forEach(sec => sec.style.display = 'block');
-        }
-
-        // File Loading
+        // Triggering standard input browse click event
         dropZone.addEventListener('click', () => fileInput.click());
+
         fileInput.addEventListener('change', (e) => {
             if(e.target.files.length > 0) {
                 selectedFile = e.target.files[0];
@@ -157,44 +147,55 @@
                 
                 const reader = new FileReader();
                 reader.onload = function(event) {
-                    originalImg = new Image();
-                    originalImg.onload = function() {
-                        originalAspectRatio = originalImg.width / originalImg.height;
-                        targetWidthInput.value = originalImg.width;
-                        targetHeightInput.value = originalImg.height;
+                    imageSrcData = event.target.result;
+                    const img = new Image();
+                    img.onload = function() {
+                        originalAspectRatio = img.width / img.height;
+                        targetWidthInput.value = img.width;
+                        targetHeightInput.value = img.height;
                         toolSettings.style.display = 'block';
                     };
-                    originalImg.src = event.target.result;
+                    img.src = imageSrcData;
                 };
                 reader.readAsDataURL(selectedFile);
             }
         });
 
-        // Lock Aspect Ratio
+        // Keep Proportions/Aspect Ratio Calculations live
         targetWidthInput.addEventListener('input', () => {
-            if (aspectRatioCheck.checked && originalImg) {
+            if (aspectRatioCheck.checked && targetWidthInput.value) {
                 targetHeightInput.value = Math.round(targetWidthInput.value / originalAspectRatio);
             }
         });
 
         targetHeightInput.addEventListener('input', () => {
-            if (aspectRatioCheck.checked && originalImg) {
+            if (aspectRatioCheck.checked && targetHeightInput.value) {
                 targetWidthInput.value = Math.round(targetHeightInput.value * originalAspectRatio);
             }
         });
 
-        // Processing Core Engine
+        // Main Resizing & Compression Loop Engine
         processBtn.addEventListener('click', () => {
-            if(!selectedFile || !originalImg) return;
+            if(!imageSrcData) return;
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-            let finalWidth = originalImg.width;
-            let finalHeight = originalImg.height;
-            let format = 'image/jpeg';
-            let quality = 0.9;
+                let finalWidth = img.width;
+                let finalHeight = img.height;
+                let format = 'image/jpeg';
+                let quality = 0.92;
 
-            if (activeMode === 'resize') {
-                finalWidth = parseInt(targetWidthInput.value) || originalImg.width;
-                finalHeight = parseInt(targetHeightInput.value) || originalImg.height;
+                if (activeMode === 'resize') {
+                    finalWidth = parseInt(targetWidthInput.value) || img.width;
+                    finalHeight = parseInt(targetHeightInput.value) || img.height;
+                    format = document.getElementById('targetFormat').value;
+                    
+                    canvas.width = finalWidth;
+                    canvas.height = finalHeight;
+                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                    triggerDownload(canvas.toDataURL(format, quality), format);
+
+                } else if (activeMode === 'targetkb') {
