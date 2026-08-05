@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelConvert - Free Professional Image Converter</title>
+    <title>PixelResizer - Free Professional Online Image Tool</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <a href="#" class="logo">⚡ PixelConvert</a>
-        <div style="color: var(--text-muted); font-size: 14px;">100% Secure & Fast</div>
+        <a href="#" class="logo">📸 PixelResizer</a>
+        <div style="color: var(--text-muted); font-size: 14px;">⚡ No App Required - 100% Free</div>
     </header>
 
-    <!-- Top Banner Ad (High CTR Spot) -->
+    <!-- Top Leaderboard Ad (Best Earning Spot) -->
     <div class="ad-banner-top">
         <div class="ad-placeholder" style="height: 90px; width: 100%;">
             [💰 PLACE TOP BANNER AD CODE HERE - 728x90]
@@ -21,29 +21,50 @@
     </div>
 
     <div class="main-wrapper">
-        <!-- Left Side: Main Tool -->
         <main class="tool-card">
-            <h2>Convert Image Format</h2>
-            <p style="color: var(--text-muted); margin-bottom: 30px;">Upload your JPG, PNG, or WebP image and convert it instantly for free.</p>
+            <h2>Ultimate Image Workspace</h2>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">Resize, compress, or convert your images instantly without losing original quality.</p>
             
+            <!-- Tool Selector Tabs -->
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="tabResize" class="tab-btn active-tab">Dimensions (px)</button>
+                <button id="tabCompress" class="tab-btn">Optimize Size</button>
+            </div>
+
+            <!-- Upload Area -->
             <div class="drop-zone" id="dropZone">
                 <p id="fileInfo" style="font-weight: 600; margin: 0;">📁 Drag & Drop Image or Click to Browse</p>
                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
             </div>
 
-            <div id="converterOptions" style="display: none; margin-top: 20px;">
-                <label style="font-weight: 600;">Select Target Format:</label>
-                <select id="targetFormat">
-                    <option value="image/png">PNG</option>
-                    <option value="image/jpeg">JPG / JPEG</option>
-                    <option value="image/webp">WebP</option>
-                </select>
+            <!-- Dynamic Settings Section -->
+            <div id="toolSettings" style="display: none; margin-top: 25px;">
+                
+                <!-- Resize Section -->
+                <div id="resizeSection">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Target Width (px):</label>
+                    <input type="number" id="targetWidth" value="800" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid var(--border); border-radius:6px;">
+                    
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Format Extension:</label>
+                    <select id="targetFormat" style="margin-top: 0; margin-bottom:15px;">
+                        <option value="image/jpeg">JPG / JPEG</option>
+                        <option value="image/png">PNG</option>
+                        <option value="image/webp">WebP</option>
+                    </select>
+                </div>
 
-                <button id="convertBtn">Convert & Download</button>
+                <!-- Compression Section -->
+                <div id="compressSection" style="display: none;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Compression Quality (10% - 100%):</label>
+                    <input type="range" id="compressQuality" min="0.1" max="1.0" step="0.1" value="0.7" style="width: 100%; margin-bottom:15px;">
+                    <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Lower value means smaller file size but lower quality.</p>
+                </div>
+
+                <button id="processBtn" style="background-color: #4f46e5;">✨ Process & Download</button>
             </div>
         </main>
 
-        <!-- Right Side: Sidebar Ads (Maximizes Earnings) -->
+        <!-- Sidebar Display Ads -->
         <aside class="ad-sidebar">
             <h4 style="margin-top: 0; color: var(--text-muted);">Sponsored Links</h4>
             <div class="ad-placeholder" style="height: 300px; width: 100%; margin-bottom: 20px;">
@@ -59,43 +80,79 @@
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileInfo = document.getElementById('fileInfo');
-        const converterOptions = document.getElementById('converterOptions');
-        const convertBtn = document.getElementById('convertBtn');
-        const targetFormat = document.getElementById('targetFormat');
+        const toolSettings = document.getElementById('toolSettings');
+        const processBtn = document.getElementById('processBtn');
+        
+        const tabResize = document.getElementById('tabResize');
+        const tabCompress = document.getElementById('tabCompress');
+        const resizeSection = document.getElementById('resizeSection');
+        const compressSection = document.getElementById('compressSection');
+
         let selectedFile = null;
+        let activeMode = 'resize'; // can be 'resize' or 'compress'
 
-        dropZone.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', (e) => {
-            if(e.target.files.length > 0) handleFile(e.target.files[0]);
+        // Tabs Logic
+        tabResize.addEventListener('click', () => {
+            activeMode = 'resize';
+            tabResize.classList.add('active-tab');
+            tabCompress.classList.remove('active-tab');
+            resizeSection.style.display = 'block';
+            compressSection.style.display = 'none';
         });
 
-        function handleFile(file) {
-            selectedFile = file;
-            fileInfo.innerText = `✅ Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-            converterOptions.style.display = 'block';
-        }
+        tabCompress.addEventListener('click', () => {
+            activeMode = 'compress';
+            tabCompress.classList.add('active-tab');
+            tabResize.classList.remove('active-tab');
+            compressSection.style.display = 'block';
+            resizeSection.style.display = 'none';
+        });
 
-        convertBtn.addEventListener('click', () => {
+        // File Selection
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                fileInfo.innerText = `✅ Loaded: ${selectedFile.name} (${(selectedFile.size/1024).toFixed(1)} KB)`;
+                toolSettings.style.display = 'block';
+            }
+        });
+
+        // Processing Logic
+        processBtn.addEventListener('click', () => {
             if(!selectedFile) return;
 
             const reader = new FileReader();
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
-                    // Canvas built-in engine to change image formats instantly
                     const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
 
-                    const format = targetFormat.value;
-                    const dataUrl = canvas.toDataURL(format);
+                    let finalWidth = img.width;
+                    let finalHeight = img.height;
+                    let format = 'image/jpeg';
+                    let quality = 0.9;
 
-                    // Automatic Download Trigger
+                    if (activeMode === 'resize') {
+                        finalWidth = parseInt(document.getElementById('targetWidth').value) || img.width;
+                        // Keep aspect ratio dynamically
+                        const scaleFactor = finalWidth / img.width;
+                        finalHeight = img.height * scaleFactor;
+                        format = document.getElementById('targetFormat').value;
+                    } else if (activeMode === 'compress') {
+                        format = selectedFile.type; // keep same format
+                        quality = parseFloat(document.getElementById('compressQuality').value);
+                    }
+
+                    canvas.width = finalWidth;
+                    canvas.height = finalHeight;
+                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+
+                    // Trigger direct high-performance download link
+                    const dataUrl = canvas.toDataURL(format, quality);
                     const link = document.createElement('a');
-                    link.download = `converted-${Date.now()}.${format.split('/')[1]}`;
+                    link.download = `pixelresizer-${Date.now()}.${format.split('/')[1]}`;
                     link.href = dataUrl;
                     link.click();
                 };
