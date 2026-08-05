@@ -42,7 +42,7 @@
             <div id="toolSettings" style="display: none;">
                 
                 <!-- 1. Dimension Controls Section -->
-                <div id="resizeSection">
+                <div id="resizeSection" style="display: block;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div>
                             <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Width (px):</label>
@@ -67,7 +67,7 @@
                     </select>
                 </div>
 
-                <!-- 2. Target KB Dropdown Options Section -->
+                <!-- 2. Target KB Dropdown Options Section (Initially Hidden) -->
                 <div id="targetKBSection" style="display: none; margin-bottom: 15px;">
                     <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Choose Desired File Size Limit:</label>
                     <select id="targetKBValue">
@@ -114,7 +114,7 @@
         let originalAspectRatio = 1;
         let imageSrcData = null;
 
-        // Clean Tab Toggling Realignment
+        // Clean Tab Toggling Realignment (Properly hides the other section)
         tabResize.addEventListener('click', () => {
             activeMode = 'resize';
             tabResize.classList.add('active-tab');
@@ -134,7 +134,7 @@
         // Error-Proof Safe File Upload Handling
         fileInput.addEventListener('change', (e) => {
             if(e.target.files.length > 0) {
-                const file = e.target.files[0]; // Fix: pick exact first item safely from file array
+                const file = e.target.files[0]; // Pick the exact first file securely
                 fileInfo.innerText = `✅ Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
                 
                 const reader = new FileReader();
@@ -145,7 +145,16 @@
                         originalAspectRatio = img.width / img.height;
                         targetWidthInput.value = img.width;
                         targetHeightInput.value = img.height;
-                        toolSettings.style.display = 'block'; // Display input settings container box
+                        toolSettings.style.display = 'block'; // Show tool options
+                        
+                        // Fix layout overlap on new file upload: enforce active tab layout
+                        if (activeMode === 'resize') {
+                            resizeSection.style.display = 'block';
+                            targetKBSection.style.display = 'none';
+                        } else {
+                            resizeSection.style.display = 'none';
+                            targetKBSection.style.display = 'block';
+                        }
                     };
                     img.src = imageSrcData;
                 };
@@ -188,15 +197,3 @@
                     canvas.width = finalWidth;
                     canvas.height = finalHeight;
                     ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
-                    triggerDownload(canvas.toDataURL(format, quality), format);
-
-                } else if (activeMode === 'targetkb') {
-                    const desiredLimitKB = parseInt(targetKBValue.value);
-                    format = 'image/jpeg'; // JPEG allows efficient lossy byte array processing
-
-                    let lowQ = 0.01;
-                    let highQ = 1.0;
-                    let optimizedDataUrl = null;
-
-                    // Absolute safe 8-step Binary Search rendering loop sequence
-                    for (let step = 0; step < 8; step++) {
