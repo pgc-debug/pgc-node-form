@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Please Wait... Loading Link</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card" style="text-align: center; max-width: 500px;">
+            <h2>Your Link is Almost Ready! ⏳</h2>
+            <p>Please wait <span id="countdown" style="font-weight: bold; color: red; font-size: 20px;">5</span> seconds to unlock the link.</p>
+            
+            <!-- ⬇️ ADS PLACEHOLDER (Yahan aap ka Ad Code aayega) ⬇️ -->
+            <div class="ad-box" style="width:100%; height:250px; background:#ddd; margin: 20px 0; display:flex; align-items:center; justify-content:center; border: 2px dashed #999;">
+                <p style="color:#666;">[💰 HIGH PAYING AD BANNER WILL SHOW HERE]</p>
+            </div>
+            <!-- ⬆️ ADS PLACEHOLDER ⬆️ -->
+
+            <button id="skipBtn" disabled style="background-color: #6c757d; cursor: not-allowed;">Please Wait...</button>
+        </div>
+    </div>
+
+    <script>
+        // URL se code nikalna (e.g., /go/xyzabc)
+        const code = window.location.pathname.split('/').pop();
+        let timeLeft = 5;
+        const countdownElement = document.getElementById('countdown');
+        const skipBtn = document.getElementById('skipBtn');
+
+        // Timer Function
+        const timer = setInterval(() => {
+            timeLeft--;
+            countdownElement.innerText = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                countdownElement.parentElement.innerText = "Your link is ready now!";
+                skipBtn.disabled = false;
+                skipBtn.innerText = "👉 Click Here to Go to Destination";
+                skipBtn.style.backgroundColor = "#28a745";
+                skipBtn.style.cursor = "pointer";
+            }
+        }, 1000);
+
+        // Redirect Dynamic Logic
+        skipBtn.addEventListener('click', async () => {
+            const response = await fetch(`/api/get-url/${code}`);
+            const data = await response.json();
+            if (data.success) {
+                window.location.href = data.url; // Destination par bhejna
+            } else {
+                alert("Link Expired or Invalid!");
+            }
+        });
+    </script>
+</body>
+</html>
