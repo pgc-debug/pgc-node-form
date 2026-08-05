@@ -3,75 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - My Form</title>
-    <link rel="stylesheet" href="fstyle.css">
+    <title>Free URL Shortener</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <!-- Navigation Bar -->
-    <div class="navbar">
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/contact" class="active">Contact Form</a>
-    </div>
-
     <div class="container">
         <div class="card">
-            <h2>Send Message</h2>
-            <form id="userForm">
-                <input type="text" id="name" placeholder="Enter Name" required>
-                <input type="email" id="email" placeholder="Enter Email" required>
-                
-                <input type="tel" id="phone" placeholder="Enter Phone Number" required>
-                <input type="text" id="city" placeholder="Enter City" required>
-                
-                <select id="gender" required>
-                    <option value="" disabled selected>Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-
-                <textarea id="message" placeholder="Enter Message" rows="4" required></textarea>
-                <button type="submit">Submit Data</button>
+            <h2>🔗 Quick URL Shortener</h2>
+            <p>Paste your long link below to get a short link.</p>
+            <form id="shortenForm">
+                <input type="url" id="longUrl" placeholder="https://example.com" required>
+                <button type="submit">Shorten Link</button>
             </form>
-            <p id="formStatus"></p>
+            
+            <div id="resultBox" style="display: none; margin-top: 20px; padding: 10px; background: #e9ecef; border-radius: 4px;">
+                <p style="font-weight: bold; margin-bottom: 5px;">Your Short Link:</p>
+                <input type="text" id="shortUrl" readonly style="margin-bottom: 5px; background: #fff;">
+                <button id="copyBtn" style="background: #007bff; width: auto; padding: 5px 15px;">Copy</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const userForm = document.getElementById('userForm');
-
-        userForm.addEventListener('submit', async (e) => {
+        const form = document.getElementById('shortenForm');
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                city: document.getElementById('city').value,
-                gender: document.getElementById('gender').value,
-                message: document.getElementById('message').value
-            };
+            const originalUrl = document.getElementById('longUrl').value;
 
-            try {
-                // Kuch servers par full URL dena behtar hota hai
-                const response = await fetch(`${window.location.origin}/api/submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                
-                const result = await response.json();
-                if(result.success) {
-                    document.getElementById('formStatus').innerText = "✅ Data sent successfully!";
-                    userForm.reset();
-                } else {
-                    document.getElementById('formStatus').innerText = "❌ Form error: " + result.message;
-                }
-            } catch (error) {
-                document.getElementById('formStatus').innerText = "❌ Connection failed!";
+            const response = await fetch('/api/shorten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ originalUrl })
+            });
+            const data = await response.json();
+            if(data.success) {
+                document.getElementById('resultBox').style.display = 'block';
+                document.getElementById('shortUrl').value = data.shortUrl;
             }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const copyText = document.getElementById('shortUrl');
+            copyText.select();
+            document.execCommand('copy');
+            alert('Link Copied!');
         });
     </script>
 </body>
