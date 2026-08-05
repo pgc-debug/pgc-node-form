@@ -13,7 +13,7 @@
         <div style="color: var(--text-muted); font-size: 14px;">⚡ No App Required - 100% Free</div>
     </header>
 
-    <!-- Top Leaderboard Ad (Best Earning Spot) -->
+    <!-- Top Leaderboard Ad -->
     <div class="ad-banner-top">
         <div class="ad-placeholder" style="height: 90px; width: 100%;">
             [💰 PLACE TOP BANNER AD CODE HERE - 728x90]
@@ -40,10 +40,24 @@
             <!-- Dynamic Settings Section -->
             <div id="toolSettings" style="display: none; margin-top: 25px;">
                 
-                <!-- Resize Section -->
+                <!-- Updated Resize Section with Width & Height -->
                 <div id="resizeSection">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Target Width (px):</label>
-                    <input type="number" id="targetWidth" value="800" style="width:100%; padding:12px; margin-bottom:15px; border:1px solid var(--border); border-radius:6px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Width (px):</label>
+                            <input type="number" id="targetWidth" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; box-sizing: border-box;">
+                        </div>
+                        <div>
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Height (px):</label>
+                            <input type="number" id="targetHeight" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; box-sizing: border-box;">
+                        </div>
+                    </div>
+
+                    <!-- Aspect Ratio Checkbox -->
+                    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+                        <input type="checkbox" id="maintainAspectRatio" checked style="width: auto; margin: 0; cursor: pointer;">
+                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio (Lock Proportions)</label>
+                    </div>
                     
                     <label style="font-weight: 600; display: block; margin-bottom: 8px;">Format Extension:</label>
                     <select id="targetFormat" style="margin-top: 0; margin-bottom:15px;">
@@ -88,8 +102,14 @@
         const resizeSection = document.getElementById('resizeSection');
         const compressSection = document.getElementById('compressSection');
 
+        const targetWidthInput = document.getElementById('targetWidth');
+        const targetHeightInput = document.getElementById('targetHeight');
+        const aspectRatioCheck = document.getElementById('maintainAspectRatio');
+
         let selectedFile = null;
-        let activeMode = 'resize'; // can be 'resize' or 'compress'
+        let activeMode = 'resize'; 
+        let originalAspectRatio = 1;
+        let originalImg = null;
 
         // Tabs Logic
         tabResize.addEventListener('click', () => {
@@ -114,51 +134,66 @@
             if(e.target.files.length > 0) {
                 selectedFile = e.target.files[0];
                 fileInfo.innerText = `✅ Loaded: ${selectedFile.name} (${(selectedFile.size/1024).toFixed(1)} KB)`;
-                toolSettings.style.display = 'block';
+                
+                // Image dimensions and aspect ratio calculate karna
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    originalImg = new Image();
+                    originalImg.onload = function() {
+                        originalAspectRatio = originalImg.width / originalImg.height;
+                        targetWidthInput.value = originalImg.width;
+                        targetHeightInput.value = originalImg.height;
+                        toolSettings.style.display = 'block';
+                    };
+                    originalImg.src = event.target.result;
+                };
+                reader.readAsDataURL(selectedFile);
             }
         });
 
-        // Processing Logic
+        // Dynamic Aspect Ratio Logic (Jaise simpleimageresizer mein hota hai)
+        targetWidthInput.addEventListener('input', () => {
+            if (aspectRatioCheck.checked && originalImg) {
+                targetHeightInput.value = Math.round(targetWidthInput.value / originalAspectRatio);
+            }
+        });
+
+        targetHeightInput.addEventListener('input', () => {
+            if (aspectRatioCheck.checked && originalImg) {
+                targetWidthInput.value = Math.round(targetHeightInput.value * originalAspectRatio);
+            }
+        });
+
+        // Processing & Resizing Engine
         processBtn.addEventListener('click', () => {
-            if(!selectedFile) return;
+            if(!selectedFile || !originalImg) return;
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
 
-                    let finalWidth = img.width;
-                    let finalHeight = img.height;
-                    let format = 'image/jpeg';
-                    let quality = 0.9;
+            let finalWidth = originalImg.width;
+            let finalHeight = originalImg.height;
+            let format = 'image/jpeg';
+            let quality = 0.9;
 
-                    if (activeMode === 'resize') {
-                        finalWidth = parseInt(document.getElementById('targetWidth').value) || img.width;
-                        // Keep aspect ratio dynamically
-                        const scaleFactor = finalWidth / img.width;
-                        finalHeight = img.height * scaleFactor;
-                        format = document.getElementById('targetFormat').value;
-                    } else if (activeMode === 'compress') {
-                        format = selectedFile.type; // keep same format
-                        quality = parseFloat(document.getElementById('compressQuality').value);
-                    }
+            if (activeMode === 'resize') {
+                finalWidth = parseInt(targetWidthInput.value) || originalImg.width;
+                finalHeight = parseInt(targetHeightInput.value) || originalImg.height;
+                format = document.getElementById('targetFormat').value;
+            } else if (activeMode === 'compress') {
+                format = selectedFile.type; 
+                quality = parseFloat(document.getElementById('compressQuality').value);
+            }
 
-                    canvas.width = finalWidth;
-                    canvas.height = finalHeight;
-                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+            canvas.width = finalWidth;
+            canvas.height = finalHeight;
+            ctx.drawImage(originalImg, 0, 0, finalWidth, finalHeight);
 
-                    // Trigger direct high-performance download link
-                    const dataUrl = canvas.toDataURL(format, quality);
-                    const link = document.createElement('a');
-                    link.download = `pixelresizer-${Date.now()}.${format.split('/')[1]}`;
-                    link.href = dataUrl;
-                    link.click();
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(selectedFile);
+            const dataUrl = canvas.toDataURL(format, quality);
+            const link = document.createElement('a');
+            link.download = `pixelresizer-${Date.now()}.${format.split('/')[1]}`;
+            link.href = dataUrl;
+            link.click();
         });
     </script>
 </body>
