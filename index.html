@@ -3,50 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free URL Shortener</title>
+    <title>PixelConvert - Free Professional Image Converter</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h2>🔗 Quick URL Shortener</h2>
-            <p>Paste your long link below to get a short link.</p>
-            <form id="shortenForm">
-                <input type="url" id="longUrl" placeholder="https://example.com" required>
-                <button type="submit">Shorten Link</button>
-            </form>
-            
-            <div id="resultBox" style="display: none; margin-top: 20px; padding: 10px; background: #e9ecef; border-radius: 4px;">
-                <p style="font-weight: bold; margin-bottom: 5px;">Your Short Link:</p>
-                <input type="text" id="shortUrl" readonly style="margin-bottom: 5px; background: #fff;">
-                <button id="copyBtn" style="background: #007bff; width: auto; padding: 5px 15px;">Copy</button>
-            </div>
+
+    <header>
+        <a href="#" class="logo">⚡ PixelConvert</a>
+        <div style="color: var(--text-muted); font-size: 14px;">100% Secure & Fast</div>
+    </header>
+
+    <!-- Top Banner Ad (High CTR Spot) -->
+    <div class="ad-banner-top">
+        <div class="ad-placeholder" style="height: 90px; width: 100%;">
+            [💰 PLACE TOP BANNER AD CODE HERE - 728x90]
         </div>
     </div>
 
-    <script>
-        const form = document.getElementById('shortenForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const originalUrl = document.getElementById('longUrl').value;
+    <div class="main-wrapper">
+        <!-- Left Side: Main Tool -->
+        <main class="tool-card">
+            <h2>Convert Image Format</h2>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Upload your JPG, PNG, or WebP image and convert it instantly for free.</p>
+            
+            <div class="drop-zone" id="dropZone">
+                <p id="fileInfo" style="font-weight: 600; margin: 0;">📁 Drag & Drop Image or Click to Browse</p>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+            </div>
 
-            const response = await fetch('/api/shorten', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ originalUrl })
-            });
-            const data = await response.json();
-            if(data.success) {
-                document.getElementById('resultBox').style.display = 'block';
-                document.getElementById('shortUrl').value = data.shortUrl;
-            }
+            <div id="converterOptions" style="display: none; margin-top: 20px;">
+                <label style="font-weight: 600;">Select Target Format:</label>
+                <select id="targetFormat">
+                    <option value="image/png">PNG</option>
+                    <option value="image/jpeg">JPG / JPEG</option>
+                    <option value="image/webp">WebP</option>
+                </select>
+
+                <button id="convertBtn">Convert & Download</button>
+            </div>
+        </main>
+
+        <!-- Right Side: Sidebar Ads (Maximizes Earnings) -->
+        <aside class="ad-sidebar">
+            <h4 style="margin-top: 0; color: var(--text-muted);">Sponsored Links</h4>
+            <div class="ad-placeholder" style="height: 300px; width: 100%; margin-bottom: 20px;">
+                [💰 PLACE SIDEBAR BANNER AD CODE HERE - 300x250]
+            </div>
+            <div class="ad-placeholder" style="height: 250px; width: 100%;">
+                [💰 PLACE SECOND AD HERE]
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const converterOptions = document.getElementById('converterOptions');
+        const convertBtn = document.getElementById('convertBtn');
+        const targetFormat = document.getElementById('targetFormat');
+        let selectedFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) handleFile(e.target.files[0]);
         });
 
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            const copyText = document.getElementById('shortUrl');
-            copyText.select();
-            document.execCommand('copy');
-            alert('Link Copied!');
+        function handleFile(file) {
+            selectedFile = file;
+            fileInfo.innerText = `✅ Selected: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+            converterOptions.style.display = 'block';
+        }
+
+        convertBtn.addEventListener('click', () => {
+            if(!selectedFile) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    // Canvas built-in engine to change image formats instantly
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const format = targetFormat.value;
+                    const dataUrl = canvas.toDataURL(format);
+
+                    // Automatic Download Trigger
+                    const link = document.createElement('a');
+                    link.download = `converted-${Date.now()}.${format.split('/')[1]}`;
+                    link.href = dataUrl;
+                    link.click();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(selectedFile);
         });
     </script>
 </body>
