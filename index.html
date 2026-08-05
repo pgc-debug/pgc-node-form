@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelResizer - Free Online Image Tool</title>
+    <title>PixelResizer - Free Online Image Workspace</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
         <a href="#" class="logo">📸 PixelResizer</a>
-        <div style="color: var(--text-muted); font-size: 14px;">⚡ 100% Free - Fast KB Resizer</div>
+        <div style="color: var(--text-muted); font-size: 14px;">⚡ 100% Free - Safe KB Resizer</div>
     </header>
 
-    <!-- Top Leaderboard Ad Slot -->
+    <!-- Top Ads Banner -->
     <div class="ad-banner-top">
         <div class="ad-placeholder" style="height: 90px; width: 100%;">
             [💰 PLACE TOP BANNER AD CODE HERE - 728x90]
@@ -21,72 +21,73 @@
     </div>
 
     <div class="main-wrapper">
+        <!-- Main Image Workspace Frame -->
         <main class="tool-card">
-            <h2>Ultimate Image Workspace</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px;">Resize, compress, or convert your images instantly without losing original quality.</p>
+            <h2 style="margin-bottom: 8px;">Ultimate Image Workspace</h2>
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;">Resize, compress, or convert your images instantly without losing original quality.</p>
             
-            <!-- Tabs -->
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <!-- Styled Tab Box Wrapper -->
+            <div class="tab-container">
                 <button id="tabResize" class="tab-btn active-tab" type="button">Dimensions (px)</button>
                 <button id="tabTargetKB" class="tab-btn" type="button">Resize to KB</button>
             </div>
 
-            <!-- Upload Area (Label trick avoids JavaScript click bugs) -->
-            <label for="fileInput" class="drop-zone" id="dropZone" style="display: block; width: 100%;">
-                <p id="fileInfo" style="font-weight: 600; margin: 0;">📁 Click Here to Browse or Drag Image</p>
+            <!-- Upload Box Frame -->
+            <label for="fileInput" class="drop-zone" id="dropZone">
+                <p id="fileInfo" style="font-weight: 600; margin: 0; color: #475569;">📁 Click Here to Browse or Drag Image</p>
                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
             </label>
 
-            <!-- Settings Section -->
-            <div id="toolSettings" style="display: none; margin-top: 25px;">
+            <!-- Dynamic Settings Section Box -->
+            <div id="toolSettings" style="display: none;">
                 
-                <!-- 1. Dimension Section -->
+                <!-- 1. Dimension Controls Section -->
                 <div id="resizeSection">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div>
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Width (px):</label>
-                            <input type="number" id="targetWidth" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; box-sizing: border-box;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Width (px):</label>
+                            <input type="number" id="targetWidth">
                         </div>
                         <div>
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px;">Height (px):</label>
-                            <input type="number" id="targetHeight" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; box-sizing: border-box;">
+                            <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Height (px):</label>
+                            <input type="number" id="targetHeight">
                         </div>
                     </div>
 
                     <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="maintainAspectRatio" checked style="width: auto; margin: 0; cursor: pointer;">
-                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio</label>
+                        <input type="checkbox" id="maintainAspectRatio" checked style="width: auto; cursor: pointer;">
+                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio (Lock Proportions)</label>
                     </div>
                     
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Target Format Extension:</label>
-                    <select id="targetFormat" style="margin-top: 0; margin-bottom:15px; width: 100%; padding: 12px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Target Format Extension:</label>
+                    <select id="targetFormat" style="margin-bottom: 15px;">
                         <option value="image/jpeg">JPG / JPEG</option>
                         <option value="image/png">PNG</option>
                         <option value="image/webp">WebP</option>
                     </select>
                 </div>
 
-                <!-- 2. Fixed Dropdown Option Box for KB Selection -->
-                <div id="targetKBSection" style="display: none;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">Choose Desired File Size Limit:</label>
-                    <select id="targetKBValue" style="margin-top: 0; margin-bottom:15px; width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; display: block;">
+                <!-- 2. Target KB Dropdown Options Section -->
+                <div id="targetKBSection" style="display: none; margin-bottom: 15px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Choose Desired File Size Limit:</label>
+                    <select id="targetKBValue">
                         <option value="20">Under 20 KB (Passport Size / Signature)</option>
                         <option value="50">Under 50 KB (Govt Job Forms)</option>
                         <option value="100">Under 100 KB (Admission Portals)</option>
                         <option value="200">Under 200 KB (Standard Documents)</option>
                         <option value="500">Under 500 KB (High Quality Web View)</option>
                     </select>
-                    <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.4;">The engine will perform multi-pass rendering cycles to safely compression-lock the image within this limit.</p>
+                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">The engine will perform multi-pass rendering cycles to safely compression-lock the image within this limit.</p>
                 </div>
 
-                <button id="processBtn" style="background-color: #4f46e5; margin-top: 15px;">✨ Process & Download</button>
+                <button id="processBtn" class="main-btn" type="button">✨ Process & Download</button>
             </div>
         </main>
 
-        <!-- Sidebar Display Ads -->
+        <!-- Right Side Sidebar Ads Frame -->
         <aside class="ad-sidebar">
-            <h4 style="margin-top: 0; color: var(--text-muted);">Sponsored Links</h4>
-            <div class="ad-placeholder" style="height: 300px; width: 100%; margin-bottom: 20px;">
+            <h4 style="margin-bottom: 15px; color: var(--text-muted); font-size: 14px;">Sponsored Links</h4>
+            <div class="ad-placeholder" style="height: 300px; width: 100%;">
                 [💰 PLACE SIDEBAR BANNER AD CODE HERE - 300x250]
             </div>
         </aside>
@@ -113,7 +114,7 @@
         let originalAspectRatio = 1;
         let imageSrcData = null;
 
-        // Clean Tab Switching
+        // Clean Tab Toggling Realignment
         tabResize.addEventListener('click', () => {
             activeMode = 'resize';
             tabResize.classList.add('active-tab');
@@ -130,10 +131,10 @@
             resizeSection.style.display = 'none';
         });
 
-        // Safe File Upload Input Logic
+        // Error-Proof Safe File Upload Handling
         fileInput.addEventListener('change', (e) => {
             if(e.target.files.length > 0) {
-                const file = e.target.files[0]; // Fix: pick exact first item safely
+                const file = e.target.files[0]; // Fix: pick exact first item safely from file array
                 fileInfo.innerText = `✅ Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
                 
                 const reader = new FileReader();
@@ -144,7 +145,7 @@
                         originalAspectRatio = img.width / img.height;
                         targetWidthInput.value = img.width;
                         targetHeightInput.value = img.height;
-                        toolSettings.style.display = 'block';
+                        toolSettings.style.display = 'block'; // Display input settings container box
                     };
                     img.src = imageSrcData;
                 };
@@ -152,7 +153,7 @@
             }
         });
 
-        // Aspect Ratio Lock
+        // Live Aspect Ratio Lock Proportion tracking
         targetWidthInput.addEventListener('input', () => {
             if (aspectRatioCheck.checked && targetWidthInput.value && originalAspectRatio) {
                 targetHeightInput.value = Math.round(targetWidthInput.value / originalAspectRatio);
@@ -165,7 +166,7 @@
             }
         });
 
-        // Execution Core
+        // Core Image Engineering Resizer Engine
         processBtn.addEventListener('click', () => {
             if(!imageSrcData) return;
 
@@ -191,11 +192,11 @@
 
                 } else if (activeMode === 'targetkb') {
                     const desiredLimitKB = parseInt(targetKBValue.value);
-                    format = 'image/jpeg'; 
+                    format = 'image/jpeg'; // JPEG allows efficient lossy byte array processing
 
                     let lowQ = 0.01;
                     let highQ = 1.0;
                     let optimizedDataUrl = null;
 
+                    // Absolute safe 8-step Binary Search rendering loop sequence
                     for (let step = 0; step < 8; step++) {
-                        quality = (lowQ + highQ) / 2;canvas.width = finalWidth;canvas.height = finalHeight;ctx.clearRect(0, 0, finalWidth, finalHeight);ctx.drawImage(img, 0, 0, finalWidth, finalHeight);const currentDataUrl = canvas.toDataURL(format, quality);const base64Length = currentDataUrl.length - 'data:image/jpeg;base64,'.length;const physicalSizeKB = (base64Length * 0.75) / 1024;if (physicalSizeKB <= desiredLimitKB) {optimizedDataUrl = currentDataUrl;lowQ = quality;} else {highQ = quality;if (quality < 0.15) {finalWidth = Math.floor(finalWidth * 0.9);finalHeight = Math.floor(finalHeight * 0.9);}}}if (!optimizedDataUrl) {optimizedDataUrl = canvas.toDataURL(format, 0.05);}triggerDownload(optimizedDataUrl, format);}};img.src = imageSrcData;});function triggerDownload(dataUrl, format) {const link = document.createElement('a');link.download = pixelresizer-${Date.now()}.${format.split('/')};link.href = dataUrl;link.click();}
