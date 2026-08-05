@@ -8,11 +8,16 @@
     --border: #e2e8f0;
 }
 
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--bg);
     color: var(--text);
-    margin: 0;
     padding: 0;
 }
 
@@ -26,26 +31,6 @@ header {
     align-items: center;
 }
 
-/* Tabs Extra Styling */
-.tab-btn {
-    background: #e2e8f0;
-    color: var(--text);
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-top: 0px;
-    width: auto;
-}
-
-.tab-btn:hover { background: #cbd5e1; }
-.active-tab {
-    background: var(--primary) !important;
-    color: white !important;
-}
-
-
 .logo {
     font-size: 22px;
     font-weight: 800;
@@ -53,10 +38,10 @@ header {
     text-decoration: none;
 }
 
-/* Main Container Grid */
+/* Main Container Layout Grid */
 .main-wrapper {
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 30px auto;
     padding: 0 20px;
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -67,23 +52,59 @@ header {
     .main-wrapper { grid-template-columns: 1fr; }
 }
 
-/* Premium Tool Card */
+/* Tool Panel Main Box */
 .tool-card {
     background: var(--card-bg);
-    padding: 40px;
-    border-radius: 16px;
+    padding: 35px;
+    border-radius: 14px;
     border: 1px solid var(--border);
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
+/* Professional Tab Buttons */
+.tab-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 8px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    color: var(--text-muted);
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.active-tab {
+    background: var(--card-bg) !important;
+    color: var(--primary) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+/* Drag and Drop Container */
 .drop-zone {
     border: 2px dashed #cbd5e1;
     padding: 40px 20px;
-    border-radius: 12px;
+    border-radius: 10px;
     text-align: center;
-    background: #f1f5f9;
+    background: #f8fafc;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
+    margin-bottom: 25px;
 }
 
 .drop-zone:hover {
@@ -91,37 +112,45 @@ header {
     background: #eef2ff;
 }
 
-/* Select & Buttons */
-select, button {
+/* Select Option & Inputs Inside Form Layout */
+input[type="number"], select {
     width: 100%;
-    padding: 14px;
-    margin-top: 20px;
-    border-radius: 8px;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-select {
+    padding: 12px 15px;
     border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
     background: var(--card-bg);
+    color: var(--text);
+    outline: none;
+    transition: border 0.2s;
 }
 
-button {
+input[type="number"]:focus, select:focus {
+    border-color: var(--primary);
+}
+
+/* Process & Run Button */
+.main-btn {
+    width: 100%;
     background: var(--primary);
     color: white;
+    padding: 14px;
     border: none;
-    font-weight: 600;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
     cursor: pointer;
+    margin-top: 15px;
     transition: background 0.2s;
 }
 
-button:hover { background: var(--primary-hover); }
+.main-btn:hover { background: var(--primary-hover); }
 
-/* Dedicated Ad Spaces */
+/* Right Sidebar Ads Framework */
 .ad-sidebar {
     background: var(--card-bg);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 20px;
     height: fit-content;
     text-align: center;
