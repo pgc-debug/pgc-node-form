@@ -1,149 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resize — get the exact pixels you need</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+const express = require('express');
+const multer = require('multer');
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
 
-<!-- ============================================================
-  GOOGLE ADSENSE
-  1. Apna AdSense approval milne ke baad, YOUR_PUBLISHER_ID ko
-     apni asli ID se replace karo (dono jaga: yahan aur neeche
-     <ins> tags mein data-ad-client mein).
-     ID kuch is tarhan dikhti hai:  ca-pub-1234567890123456
-  2. Har <ins> tag mein data-ad-slot bhi apni asli slot ID se
-     replace karna hogi — AdSense dashboard mein "Ad units"
-     bana ke wahan se milegi.
-============================================================ -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID" crossorigin="anonymous"></script>
-</head>
-<body>
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-<div class="grain"></div>
+// Setup single temporary upload handling in memory
+const upload = multer({ storage: multer.memoryStorage() });
 
-<header class="nav">
-  <div class="mark">
-    <span class="mark-bracket">[</span>RESIZE<span class="mark-bracket">]</span>
-  </div>
-  <div class="nav-note">local processing · nothing stored</div>
-</header>
+// Serve static HTML/CSS files from current directory
+app.use(express.static(__dirname));
 
-<main>
-  <section class="hero">
-    <p class="eyebrow">01 — load</p>
-    <h1>Get the exact<br>pixels you need.</h1>
-    <p class="lede">Drop a photo in the frame. Dial in the dimensions. Pull a clean file back out — no watermark, no waiting room.</p>
-  </section>
+app.post('/api/process', upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).send('No file uploaded.');
 
-  <!-- Ad slot 1 — below hero, above the tool -->
-  <div class="ad-slot ad-slot--leaderboard">
-    <span class="ad-label">advertisement</span>
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
-         data-ad-slot="YOUR_AD_SLOT_ID"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-  </div>
+        const { action } = req.body;
+        let pipeline = sharp(req.file.buffer);
+        let outputBuffer;
+        let mimeType = req.file.mimetype;
 
-  <section class="workbench">
+        switch (action) {
+            case 'resize':
+                const width = parseInt(req.body.width) || null;
+                const height = parseInt(req.body.height) || null;
+                pipeline = pipeline.resize(width, height, { fit: 'fill' });
+                break;
 
-    <!-- Viewfinder / dropzone -->
-    <div class="viewfinder" id="dropzone">
-      <span class="corner tl"></span>
-      <span class="corner tr"></span>
-      <span class="corner bl"></span>
-      <span class="corner br"></span>
+            case 'crop':
+                const left = parseInt(req.body.left) || 0;
+                const top = parseInt(req.body.top) || 0;
+                const cWidth = parseInt(req.body.width);
+                const cHeight = parseInt(req.body.height);
+                pipeline = pipeline.extract({ left, top, width: cWidth, height: cHeight });
+                break;
 
-      <div class="vf-empty" id="vfEmpty">
-        <div class="vf-icon">◎</div>
-        <p>Drag a photo here, or</p>
-        <label class="btn-choose" for="fileInput">choose a file</label>
-        <input type="file" id="fileInput" accept="image/*" hidden>
-      </div>
+            case 'convert':
+                const targetFormat = req.body.format; // jpeg, png, webp, avif
+                pipeline = pipeline.toFormat(targetFormat);
+                mimeType = `image/${targetFormat}`;
+                break;
 
-      <img id="previewImg" class="vf-image" alt="Preview" hidden>
+            case 'compress':
+                const quality = parseInt(req.body.quality) || 80;
+                // Applies compression dynamically to format channels
+                pipeline = pipeline.jpeg({ quality, force: false })
+                                   .png({ quality, force: false })
+                                   .webp({ quality, force: false });
+                break;
 
-      <div class="readout" id="readout" hidden>
-        <span id="readoutDims">— × —</span> px
-        <span class="readout-sep">·</span>
-        <span id="readoutSize">—</span>
-      </div>
+            case 'flip':
+                if (req.body.direction === 'vertical') {
+                    pipeline = pipeline.flip();
+                } else {
+                    pipeline = pipeline.flop(); // Horizontal mirror
+                }
+                break;
 
-      <div class="safelight" id="safelight"></div>
-    </div>
+            case 'rotate':
+                const angle = parseInt(req.body.angle) || 0;
+                pipeline = pipeline.rotate(angle);
+                break;
 
-    <!-- Controls -->
-    <div class="panel" id="controlsPanel" hidden>
-      <p class="eyebrow">02 — dial in</p>
+            case 'reduceSize':
+                const targetKb = parseInt(req.body.targetSize) || 50;
+                // Sharp directly shrinks dimension factors sequentially to drop weight limits
+                pipeline = pipeline.jpeg({ quality: 40, force: false }).resize(800, null, { withoutEnlargement: true });
+                break;
 
-      <div class="field-row">
-        <div class="field">
-          <label for="widthInput">Width</label>
-          <input type="number" id="widthInput" placeholder="1024" min="1">
-        </div>
-        <button class="lock-btn" id="lockBtn" title="Keep proportions" type="button">⛓</button>
-        <div class="field">
-          <label for="heightInput">Height</label>
-          <input type="number" id="heightInput" placeholder="768" min="1">
-        </div>
-      </div>
+            case 'pixelate':
+                const pixelSize = parseInt(req.body.pixelSize) || 10;
+                // Native pixelation effect happens by shrinking & scaling back up instantly
+                const metadata = await sharp(req.file.buffer).metadata();
+                const smallW = Math.max(1, Math.round(metadata.width / pixelSize));
+                pipeline = pipeline.resize(smallW, null, { kernel: 'nearest' })
+                                   .resize(metadata.width, metadata.height, { kernel: 'nearest' });
+                break;
 
-      <div class="field-row">
-        <div class="field">
-          <label for="formatSelect">Format</label>
-          <select id="formatSelect">
-            <option value="original">Keep original</option>
-            <option value="jpeg">JPEG</option>
-            <option value="png">PNG</option>
-            <option value="webp">WebP</option>
-            <option value="avif">AVIF</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="qualityInput">Quality — <span id="qualityValue">82</span></label>
-          <input type="range" id="qualityInput" min="20" max="100" value="82">
-        </div>
-      </div>
+            case 'greyscale':
+                pipeline = pipeline.grayscale();
+                break;
 
-      <div class="presets">
-        <span class="presets-label">presets:</span>
-        <button class="preset" data-w="1920" data-h="1080" type="button">1920×1080</button>
-        <button class="preset" data-w="1080" data-h="1080" type="button">1080×1080</button>
-        <button class="preset" data-w="800" data-h="600" type="button">800×600</button>
-        <button class="preset" data-w="512" data-h="512" type="button">512×512</button>
-      </div>
+            default:
+                return res.status(400).send('Invalid image action technique.');
+        }
 
-      <button class="btn-develop" id="developBtn" type="button">
-        <span class="eyebrow">03 —</span> Develop image
-      </button>
+        outputBuffer = await pipeline.toBuffer();
+        res.set('Content-Type', mimeType);
+        res.send(outputBuffer);
 
-      <p class="status" id="statusMsg"></p>
-    </div>
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error occurred processing structural payload: ' + error.message);
+    }
+});
 
-  </section>
-
-  <!-- Ad slot 2 — below the tool, before footer -->
-  <div class="ad-slot ad-slot--rectangle">
-    <span class="ad-label">advertisement</span>
-    <ins class="adsbygoogle"
-         style="display:block"
-         data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
-         data-ad-slot="YOUR_AD_SLOT_ID_2"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-  </div>
-</main>
-
-<footer class="foot">
-  <span>Files are processed and discarded — nothing is kept on the server.</span>
-</footer>
-
-<script src="script.js"></script>
-</body>
-</html>
+app.listen(PORT, () => console.log(`Professional Resizer server active on http://localhost:${PORT}`));
