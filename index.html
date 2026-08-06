@@ -7,41 +7,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <header>
         <a href="#" class="logo">📸 PixelResizer</a>
         <div style="color: var(--text-muted); font-size: 14px;">⚡ 100% Free - Safe KB Resizer</div>
     </header>
-
-    <!-- Top Ads Banner -->
     <div class="ad-banner-top">
-        <div class="ad-placeholder" style="height: 90px; width: 100%;">
-            [💰 PLACE TOP BANNER AD CODE HERE - 728x90]
-        </div>
+        <div class="ad-placeholder" style="height: 90px; width: 100%;">[💰 PLACE TOP BANNER AD CODE HERE]</div>
     </div>
-
     <div class="main-wrapper">
-        <!-- Main Image Workspace Frame -->
         <main class="tool-card">
             <h2 style="margin-bottom: 8px;">Ultimate Image Workspace</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;">Resize, compress, or convert your images instantly without losing original quality.</p>
-            
-            <!-- Styled Tab Box Wrapper -->
+            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;">Resize, compress, or convert your images instantly.</p>
             <div class="tab-container">
                 <button id="tabResize" class="tab-btn active-tab" type="button">Dimensions (px)</button>
                 <button id="tabTargetKB" class="tab-btn" type="button">Resize to KB</button>
             </div>
-
-            <!-- Upload Box Frame -->
             <label for="fileInput" class="drop-zone" id="dropZone">
                 <p id="fileInfo" style="font-weight: 600; margin: 0; color: #475569;">📁 Click Here to Browse or Drag Image</p>
                 <input type="file" id="fileInput" accept="image/*" style="display: none;">
             </label>
-
-            <!-- Dynamic Settings Section Box -->
             <div id="toolSettings" style="display: none;">
-                
-                <!-- 1. Dimension Controls Section -->
                 <div id="resizeSection" style="display: block;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div>
@@ -53,12 +38,10 @@
                             <input type="number" id="targetHeight">
                         </div>
                     </div>
-
                     <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
                         <input type="checkbox" id="maintainAspectRatio" checked style="width: auto; cursor: pointer;">
-                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio (Lock Proportions)</label>
+                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio</label>
                     </div>
-                    
                     <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Target Format Extension:</label>
                     <select id="targetFormat" style="margin-bottom: 15px;">
                         <option value="image/jpeg">JPG / JPEG</option>
@@ -66,8 +49,6 @@
                         <option value="image/webp">WebP</option>
                     </select>
                 </div>
-
-                <!-- 2. Target KB Dropdown Options Section (Initially Hidden) -->
                 <div id="targetKBSection" style="display: none; margin-bottom: 15px;">
                     <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Choose Desired File Size Limit:</label>
                     <select id="targetKBValue">
@@ -77,123 +58,12 @@
                         <option value="200">Under 200 KB (Standard Documents)</option>
                         <option value="500">Under 500 KB (High Quality Web View)</option>
                     </select>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">The engine will perform multi-pass rendering cycles to safely compression-lock the image within this limit.</p>
                 </div>
-
                 <button id="processBtn" class="main-btn" type="button">✨ Process & Download</button>
             </div>
         </main>
-
-        <!-- Right Side Sidebar Ads Frame -->
         <aside class="ad-sidebar">
             <h4 style="margin-bottom: 15px; color: var(--text-muted); font-size: 14px;">Sponsored Links</h4>
-            <div class="ad-placeholder" style="height: 300px; width: 100%;">
-                [💰 PLACE SIDEBAR BANNER AD CODE HERE - 300x250]
-            </div>
+            <div class="ad-placeholder" style="height: 300px; width: 100%;">[💰 PLACE SIDEBAR BANNER AD CODE HERE]</div>
         </aside>
     </div>
-
-    <script>
-        const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const toolSettings = document.getElementById('toolSettings');
-        const processBtn = document.getElementById('processBtn');
-        
-        const tabResize = document.getElementById('tabResize');
-        const tabTargetKB = document.getElementById('tabTargetKB');
-        
-        const resizeSection = document.getElementById('resizeSection');
-        const targetKBSection = document.getElementById('targetKBSection');
-
-        const targetWidthInput = document.getElementById('targetWidth');
-        const targetHeightInput = document.getElementById('targetHeight');
-        const aspectRatioCheck = document.getElementById('maintainAspectRatio');
-        const targetKBValue = document.getElementById('targetKBValue');
-
-        let activeMode = 'resize'; 
-        let originalAspectRatio = 1;
-        let imageSrcData = null;
-
-        // Clean Tab Toggling Realignment (Properly hides the other section)
-        tabResize.addEventListener('click', () => {
-            activeMode = 'resize';
-            tabResize.classList.add('active-tab');
-            tabTargetKB.classList.remove('active-tab');
-            resizeSection.style.display = 'block';
-            targetKBSection.style.display = 'none';
-        });
-
-        tabTargetKB.addEventListener('click', () => {
-            activeMode = 'targetkb';
-            tabTargetKB.classList.add('active-tab');
-            tabResize.classList.remove('active-tab');
-            targetKBSection.style.display = 'block';
-            resizeSection.style.display = 'none';
-        });
-
-        // Error-Proof Safe File Upload Handling
-        fileInput.addEventListener('change', (e) => {
-            if(e.target.files.length > 0) {
-                const file = e.target.files[0]; // Pick the exact first file securely
-                fileInfo.innerText = `✅ Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-                
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    imageSrcData = event.target.result;
-                    const img = new Image();
-                    img.onload = function() {
-                        originalAspectRatio = img.width / img.height;
-                        targetWidthInput.value = img.width;
-                        targetHeightInput.value = img.height;
-                        toolSettings.style.display = 'block'; // Show tool options
-                        
-                        // Fix layout overlap on new file upload: enforce active tab layout
-                        if (activeMode === 'resize') {
-                            resizeSection.style.display = 'block';
-                            targetKBSection.style.display = 'none';
-                        } else {
-                            resizeSection.style.display = 'none';
-                            targetKBSection.style.display = 'block';
-                        }
-                    };
-                    img.src = imageSrcData;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Live Aspect Ratio Lock Proportion tracking
-        targetWidthInput.addEventListener('input', () => {
-            if (aspectRatioCheck.checked && targetWidthInput.value && originalAspectRatio) {
-                targetHeightInput.value = Math.round(targetWidthInput.value / originalAspectRatio);
-            }
-        });
-
-        targetHeightInput.addEventListener('input', () => {
-            if (aspectRatioCheck.checked && targetHeightInput.value && originalAspectRatio) {
-                targetWidthInput.value = Math.round(targetHeightInput.value * originalAspectRatio);
-            }
-        });
-
-        // Core Image Engineering Resizer Engine
-        processBtn.addEventListener('click', () => {
-            if(!imageSrcData) return;
-
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                let finalWidth = img.width;
-                let finalHeight = img.height;
-                let format = 'image/jpeg';
-                let quality = 0.92;
-
-                if (activeMode === 'resize') {
-                    finalWidth = parseInt(targetWidthInput.value) || img.width;
-                    finalHeight = parseInt(targetHeightInput.value) || img.height;
-                    format = document.getElementById('targetFormat').value;
-                    
-                    canvas.width = finalWidth;
-                    canvas.height = finalHeight;
-                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
