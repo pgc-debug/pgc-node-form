@@ -67,3 +67,125 @@
             <div class="ad-placeholder" style="height: 300px; width: 100%;">[💰 PLACE SIDEBAR BANNER AD CODE HERE]</div>
         </aside>
     </div>
+
+
+
+
+
+        <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const toolSettings = document.getElementById('toolSettings');
+        const processBtn = document.getElementById('processBtn');
+        const tabResize = document.getElementById('tabResize');
+        const tabTargetKB = document.getElementById('tabTargetKB');
+        const resizeSection = document.getElementById('resizeSection');
+        const targetKBSection = document.getElementById('targetKBSection');
+        const targetWidthInput = document.getElementById('targetWidth');
+        const targetHeightInput = document.getElementById('targetHeight');
+        const aspectRatioCheck = document.getElementById('maintainAspectRatio');
+        const targetKBValue = document.getElementById('targetKBValue');
+
+        let activeMode = 'resize'; let originalAspectRatio = 1; let imageSrcData = null;
+
+        tabResize.addEventListener('click', () => {
+            activeMode = 'resize';
+            tabResize.classList.add('active-tab');
+            tabTargetKB.classList.remove('active-tab');
+            resizeSection.style.display = 'block';
+            targetKBSection.style.display = 'none';
+        });
+
+        tabTargetKB.addEventListener('click', () => {
+            activeMode = 'targetkb';
+            tabTargetKB.classList.add('active-tab');
+            tabResize.classList.remove('active-tab');
+            targetKBSection.style.display = 'block';
+            resizeSection.style.display = 'none';
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                const file = e.target.files[0];
+                fileInfo.innerText = `✅ Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    imageSrcData = event.target.result;
+                    const img = new Image();
+                    img.onload = function() {
+                        originalAspectRatio = img.width / img.height;
+                        targetWidthInput.value = img.width;
+                        targetHeightInput.value = img.height;
+                        toolSettings.style.display = 'block';
+                    };
+                    img.src = imageSrcData;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        targetWidthInput.addEventListener('input', () => {
+            if (aspectRatioCheck.checked && targetWidthInput.value && originalAspectRatio) {
+                targetHeightInput.value = Math.round(targetWidthInput.value / originalAspectRatio);
+            }
+        });
+
+        targetHeightInput.addEventListener('input', () => {
+            if (aspectRatioCheck.checked && targetHeightInput.value && originalAspectRatio) {
+                targetWidthInput.value = Math.round(targetHeightInput.value * originalAspectRatio);
+            }
+        });
+
+        processBtn.addEventListener('click', () => {
+            if(!imageSrcData) return;
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                let finalWidth = img.width; let finalHeight = img.height;
+                let format = 'image/jpeg'; let quality = 0.92;
+
+                if (activeMode === 'resize') {
+                    finalWidth = parseInt(targetWidthInput.value) || img.width;
+                    finalHeight = parseInt(targetHeightInput.value) || img.height;
+                    format = document.getElementById('targetFormat').value;
+                    canvas.width = finalWidth; canvas.height = finalHeight;
+                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                    triggerDownload(canvas.toDataURL(format, quality), format);
+                } else if (activeMode === 'targetkb') {
+                    const desiredLimitKB = parseInt(targetKBValue.value);
+                    let lowQ = 0.01; let highQ = 1.0; let optimizedDataUrl = null;
+                    for (let step = 0; step < 8; step++) {
+                        quality = (lowQ + highQ) / 2;
+                        canvas.width = finalWidth; canvas.height = finalHeight;
+                        ctx.clearRect(0, 0, finalWidth, finalHeight);
+                        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+                        const currentDataUrl = canvas.toDataURL(format, quality);
+                        const base64Length = currentDataUrl.length - 'data:image/jpeg;base64,'.length;
+                        const physicalSizeKB = (base64Length * 0.75) / 1024;
+                        if (physicalSizeKB <= desiredLimitKB) {
+                            optimizedDataUrl = currentDataUrl; lowQ = quality;
+                        } else {
+                            highQ = quality;
+                            if (quality < 0.15) {
+                                finalWidth = Math.floor(finalWidth * 0.9);
+                                finalHeight = Math.floor(finalHeight * 0.9);
+                            }
+                        }
+                    }
+                    if (!optimizedDataUrl) optimizedDataUrl = canvas.toDataURL(format, 0.05);
+                    triggerDownload(optimizedDataUrl, format);
+                }
+            };
+            img.src = imageSrcData;
+        });
+
+        function triggerDownload(dataUrl, format) {
+            const link = document.createElement('a');
+            link.download = `pixelresizer-${Date.now()}.${format.split('/')[1]}`;
+            link.href = dataUrl;
+            link.click();
+        }
+    </script>
+</body>
+</html>
