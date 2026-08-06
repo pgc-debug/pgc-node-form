@@ -1,191 +1,149 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelResizer - Free Online Image Workspace</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resize — get the exact pixels you need</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<!-- ============================================================
+  GOOGLE ADSENSE
+  1. Apna AdSense approval milne ke baad, YOUR_PUBLISHER_ID ko
+     apni asli ID se replace karo (dono jaga: yahan aur neeche
+     <ins> tags mein data-ad-client mein).
+     ID kuch is tarhan dikhti hai:  ca-pub-1234567890123456
+  2. Har <ins> tag mein data-ad-slot bhi apni asli slot ID se
+     replace karna hogi — AdSense dashboard mein "Ad units"
+     bana ke wahan se milegi.
+============================================================ -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_PUBLISHER_ID" crossorigin="anonymous"></script>
 </head>
 <body>
-    <header>
-        <a href="#" class="logo">📸 PixelResizer</a>
-        <div style="color: var(--text-muted); font-size: 14px;">⚡ 100% Free - Safe KB Resizer</div>
-    </header>
-    <div class="ad-banner-top">
-        <div class="ad-placeholder" style="height: 90px; width: 100%;">[💰 PLACE TOP BANNER AD CODE HERE]</div>
-    </div>
-    <div class="main-wrapper">
-        <main class="tool-card">
-            <h2 style="margin-bottom: 8px;">Ultimate Image Workspace</h2>
-            <p style="color: var(--text-muted); margin-bottom: 25px; font-size: 15px;">Resize, compress, or convert your images instantly.</p>
-            <div class="tab-container">
-                <button id="tabResize" class="tab-btn active-tab" type="button">Dimensions (px)</button>
-                <button id="tabTargetKB" class="tab-btn" type="button">Resize to KB</button>
-            </div>
-            <label for="fileInput" class="drop-zone" id="dropZone">
-                <p id="fileInfo" style="font-weight: 600; margin: 0; color: #475569;">📁 Click Here to Browse or Drag Image</p>
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-            </label>
-            <div id="toolSettings" style="display: none;">
-                <div id="resizeSection" style="display: block;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Width (px):</label>
-                            <input type="number" id="targetWidth">
-                        </div>
-                        <div>
-                            <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Height (px):</label>
-                            <input type="number" id="targetHeight">
-                        </div>
-                    </div>
-                    <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
-                        <input type="checkbox" id="maintainAspectRatio" checked style="width: auto; cursor: pointer;">
-                        <label for="maintainAspectRatio" style="font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer;">Keep aspect ratio</label>
-                    </div>
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Target Format Extension:</label>
-                    <select id="targetFormat" style="margin-bottom: 15px;">
-                        <option value="image/jpeg">JPG / JPEG</option>
-                        <option value="image/png">PNG</option>
-                        <option value="image/webp">WebP</option>
-                    </select>
-                </div>
-                <div id="targetKBSection" style="display: none; margin-bottom: 15px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px; font-size: 14px;">Choose Desired File Size Limit:</label>
-                    <select id="targetKBValue">
-                        <option value="20">Under 20 KB (Passport Size / Signature)</option>
-                        <option value="50">Under 50 KB (Govt Job Forms)</option>
-                        <option value="100">Under 100 KB (Admission Portals)</option>
-                        <option value="200">Under 200 KB (Standard Documents)</option>
-                        <option value="500">Under 500 KB (High Quality Web View)</option>
-                    </select>
-                </div>
-                <button id="processBtn" class="main-btn" type="button">✨ Process & Download</button>
-            </div>
-        </main>
-        <aside class="ad-sidebar">
-            <h4 style="margin-bottom: 15px; color: var(--text-muted); font-size: 14px;">Sponsored Links</h4>
-            <div class="ad-placeholder" style="height: 300px; width: 100%;">[💰 PLACE SIDEBAR BANNER AD CODE HERE]</div>
-        </aside>
+
+<div class="grain"></div>
+
+<header class="nav">
+  <div class="mark">
+    <span class="mark-bracket">[</span>RESIZE<span class="mark-bracket">]</span>
+  </div>
+  <div class="nav-note">local processing · nothing stored</div>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">01 — load</p>
+    <h1>Get the exact<br>pixels you need.</h1>
+    <p class="lede">Drop a photo in the frame. Dial in the dimensions. Pull a clean file back out — no watermark, no waiting room.</p>
+  </section>
+
+  <!-- Ad slot 1 — below hero, above the tool -->
+  <div class="ad-slot ad-slot--leaderboard">
+    <span class="ad-label">advertisement</span>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+         data-ad-slot="YOUR_AD_SLOT_ID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <section class="workbench">
+
+    <!-- Viewfinder / dropzone -->
+    <div class="viewfinder" id="dropzone">
+      <span class="corner tl"></span>
+      <span class="corner tr"></span>
+      <span class="corner bl"></span>
+      <span class="corner br"></span>
+
+      <div class="vf-empty" id="vfEmpty">
+        <div class="vf-icon">◎</div>
+        <p>Drag a photo here, or</p>
+        <label class="btn-choose" for="fileInput">choose a file</label>
+        <input type="file" id="fileInput" accept="image/*" hidden>
+      </div>
+
+      <img id="previewImg" class="vf-image" alt="Preview" hidden>
+
+      <div class="readout" id="readout" hidden>
+        <span id="readoutDims">— × —</span> px
+        <span class="readout-sep">·</span>
+        <span id="readoutSize">—</span>
+      </div>
+
+      <div class="safelight" id="safelight"></div>
     </div>
 
+    <!-- Controls -->
+    <div class="panel" id="controlsPanel" hidden>
+      <p class="eyebrow">02 — dial in</p>
 
+      <div class="field-row">
+        <div class="field">
+          <label for="widthInput">Width</label>
+          <input type="number" id="widthInput" placeholder="1024" min="1">
+        </div>
+        <button class="lock-btn" id="lockBtn" title="Keep proportions" type="button">⛓</button>
+        <div class="field">
+          <label for="heightInput">Height</label>
+          <input type="number" id="heightInput" placeholder="768" min="1">
+        </div>
+      </div>
 
+      <div class="field-row">
+        <div class="field">
+          <label for="formatSelect">Format</label>
+          <select id="formatSelect">
+            <option value="original">Keep original</option>
+            <option value="jpeg">JPEG</option>
+            <option value="png">PNG</option>
+            <option value="webp">WebP</option>
+            <option value="avif">AVIF</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="qualityInput">Quality — <span id="qualityValue">82</span></label>
+          <input type="range" id="qualityInput" min="20" max="100" value="82">
+        </div>
+      </div>
 
+      <div class="presets">
+        <span class="presets-label">presets:</span>
+        <button class="preset" data-w="1920" data-h="1080" type="button">1920×1080</button>
+        <button class="preset" data-w="1080" data-h="1080" type="button">1080×1080</button>
+        <button class="preset" data-w="800" data-h="600" type="button">800×600</button>
+        <button class="preset" data-w="512" data-h="512" type="button">512×512</button>
+      </div>
 
-        <script>
-        const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const toolSettings = document.getElementById('toolSettings');
-        const processBtn = document.getElementById('processBtn');
-        const tabResize = document.getElementById('tabResize');
-        const tabTargetKB = document.getElementById('tabTargetKB');
-        const resizeSection = document.getElementById('resizeSection');
-        const targetKBSection = document.getElementById('targetKBSection');
-        const targetWidthInput = document.getElementById('targetWidth');
-        const targetHeightInput = document.getElementById('targetHeight');
-        const aspectRatioCheck = document.getElementById('maintainAspectRatio');
-        const targetKBValue = document.getElementById('targetKBValue');
+      <button class="btn-develop" id="developBtn" type="button">
+        <span class="eyebrow">03 —</span> Develop image
+      </button>
 
-        let activeMode = 'resize'; let originalAspectRatio = 1; let imageSrcData = null;
+      <p class="status" id="statusMsg"></p>
+    </div>
 
-        tabResize.addEventListener('click', () => {
-            activeMode = 'resize';
-            tabResize.classList.add('active-tab');
-            tabTargetKB.classList.remove('active-tab');
-            resizeSection.style.display = 'block';
-            targetKBSection.style.display = 'none';
-        });
+  </section>
 
-        tabTargetKB.addEventListener('click', () => {
-            activeMode = 'targetkb';
-            tabTargetKB.classList.add('active-tab');
-            tabResize.classList.remove('active-tab');
-            targetKBSection.style.display = 'block';
-            resizeSection.style.display = 'none';
-        });
+  <!-- Ad slot 2 — below the tool, before footer -->
+  <div class="ad-slot ad-slot--rectangle">
+    <span class="ad-label">advertisement</span>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-YOUR_PUBLISHER_ID"
+         data-ad-slot="YOUR_AD_SLOT_ID_2"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+</main>
 
-        fileInput.addEventListener('change', (e) => {
-            if(e.target.files.length > 0) {
-                const file = e.target.files[0];
-                fileInfo.innerText = `✅ Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    imageSrcData = event.target.result;
-                    const img = new Image();
-                    img.onload = function() {
-                        originalAspectRatio = img.width / img.height;
-                        targetWidthInput.value = img.width;
-                        targetHeightInput.value = img.height;
-                        toolSettings.style.display = 'block';
-                    };
-                    img.src = imageSrcData;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+<footer class="foot">
+  <span>Files are processed and discarded — nothing is kept on the server.</span>
+</footer>
 
-        targetWidthInput.addEventListener('input', () => {
-            if (aspectRatioCheck.checked && targetWidthInput.value && originalAspectRatio) {
-                targetHeightInput.value = Math.round(targetWidthInput.value / originalAspectRatio);
-            }
-        });
-
-        targetHeightInput.addEventListener('input', () => {
-            if (aspectRatioCheck.checked && targetHeightInput.value && originalAspectRatio) {
-                targetWidthInput.value = Math.round(targetHeightInput.value * originalAspectRatio);
-            }
-        });
-
-        processBtn.addEventListener('click', () => {
-            if(!imageSrcData) return;
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                let finalWidth = img.width; let finalHeight = img.height;
-                let format = 'image/jpeg'; let quality = 0.92;
-
-                if (activeMode === 'resize') {
-                    finalWidth = parseInt(targetWidthInput.value) || img.width;
-                    finalHeight = parseInt(targetHeightInput.value) || img.height;
-                    format = document.getElementById('targetFormat').value;
-                    canvas.width = finalWidth; canvas.height = finalHeight;
-                    ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
-                    triggerDownload(canvas.toDataURL(format, quality), format);
-                } else if (activeMode === 'targetkb') {
-                    const desiredLimitKB = parseInt(targetKBValue.value);
-                    let lowQ = 0.01; let highQ = 1.0; let optimizedDataUrl = null;
-                    for (let step = 0; step < 8; step++) {
-                        quality = (lowQ + highQ) / 2;
-                        canvas.width = finalWidth; canvas.height = finalHeight;
-                        ctx.clearRect(0, 0, finalWidth, finalHeight);
-                        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
-                        const currentDataUrl = canvas.toDataURL(format, quality);
-                        const base64Length = currentDataUrl.length - 'data:image/jpeg;base64,'.length;
-                        const physicalSizeKB = (base64Length * 0.75) / 1024;
-                        if (physicalSizeKB <= desiredLimitKB) {
-                            optimizedDataUrl = currentDataUrl; lowQ = quality;
-                        } else {
-                            highQ = quality;
-                            if (quality < 0.15) {
-                                finalWidth = Math.floor(finalWidth * 0.9);
-                                finalHeight = Math.floor(finalHeight * 0.9);
-                            }
-                        }
-                    }
-                    if (!optimizedDataUrl) optimizedDataUrl = canvas.toDataURL(format, 0.05);
-                    triggerDownload(optimizedDataUrl, format);
-                }
-            };
-            img.src = imageSrcData;
-        });
-
-        function triggerDownload(dataUrl, format) {
-            const link = document.createElement('a');
-            link.download = `pixelresizer-${Date.now()}.${format.split('/')[1]}`;
-            link.href = dataUrl;
-            link.click();
-        }
-    </script>
+<script src="script.js"></script>
 </body>
 </html>
